@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ML Pipeline</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <h1>ML Pipeline</h1>
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept=".csv" />
+      <button type="submit">Upload</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          var fileInput = document.getElementById("fileInput");
+          var file = fileInput.files[0];
+          var reader = new FileReader();
+          reader.onload = function (event) {
+            var csvData = event.target.result;
+            var data = Papa.parse(csvData, {
+              header: true,
+              dynamicTyping: true,
+            }).data[0];
+            fetch("/predict", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                document.getElementById("result").innerText =
+                  "Prediction: " + result.prediction;
+              });
+          };
+          reader.readAsText(file);
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  </body>
+</html>
